@@ -5,42 +5,15 @@
 
 
 import pandas as pd
+from sqlalchemy import create_engine
+from tqdm.auto import tqdm
 
+pg_user = 'root'
+pg_pass = 'root'
+pg_host = "localhost"
+pg_port = 5432
+pg_db = 'ny_taxi'
 
-# In[3]:
-
-
-# Read a sample of the data
-prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/'
-url = f'{prefix}/yellow_tripdata_2021-01.csv.gz'
-url
-
-
-# In[4]:
-
-
-df = pd.read_csv(
-    url,
-    nrows=100
-)
-
-
-# In[5]:
-
-
-df.info()
-
-
-# In[6]:
-
-
-df.head()
-
-
-# In[7]:
-
-
- # we need to specify the types:
 dtype = {
     "VendorID": "Int64",
     "passenger_count": "Int64",
@@ -65,9 +38,13 @@ parse_dates = [
     "tpep_dropoff_datetime"
 ]
 
+prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/'
+year = 2021
+month = 1
 
-# In[8]:
+# Read a sample of the data
 
+url = f'{prefix}/yellow_tripdata_{year}-{month:02d}.csv.gz'
 
 df = pd.read_csv(
     url,
@@ -76,55 +53,12 @@ df = pd.read_csv(
     parse_dates=parse_dates
 )
 
-
-# In[9]:
-
-
-df.head()
-
-
-# In[10]:
-
-
-df.info()
-
-
-# In[12]:
-
-
-from sqlalchemy import create_engine
-engine = create_engine('postgresql+psycopg://root:root@localhost:5432/ny_taxi')
-
-
-# In[13]:
-
-
-engine
-
-
-# In[14]:
+engine = create_engine(f'postgresql+psycopg://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
 
 
 # we want to create schema like this for 'yellow_taxi_data'
+print("Schema for 'yellow_taxi_data' table")
 print(pd.io.sql.get_schema(df, name='yellow_taxi_data', con=engine))
-
-
-# In[25]:
-
-
-df.head(0)
-
-
-# In[26]:
-
-
-df.head(0).info()
-
-
-# In[15]:
-
-
-# Now create only schema as we see with zero values
 df.head(0).to_sql(
     name='yellow_taxi_data', 
     con=engine,
@@ -132,21 +66,11 @@ df.head(0).to_sql(
 )
 
 
-# In[17]:
-
 
 df = pd.read_csv(
     url,
 )
-
-
-# In[18]:
-
-
-len(df)
-
-
-# In[28]:
+print(f'NO. of row in csv file: {len(df)}')
 
 
 # csv file have 1.36M rows, 
@@ -163,10 +87,7 @@ for df_i in df_iter:
     print(len(df_i))
 
 
-# In[32]:
 
-
-from tqdm.auto import tqdm
 # Now load 100K cunks wise data in postgresql
 df_iter = pd.read_csv(
     url,
@@ -181,34 +102,5 @@ for df_i in tqdm(df_iter):
         con=engine,
         if_exists='append' # if something is there then it gonna append rows
     )
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
 
 
