@@ -1,3 +1,5 @@
 ./venv
 *.parquet
 Dockerfile
+db*
+ny_taxi*
